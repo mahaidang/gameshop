@@ -2,13 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+def cloudinaryCloudName = project.findProperty("CLOUDINARY_CLOUD_NAME") ?: ""
+def cloudinaryUploadPreset = project.findProperty("CLOUDINARY_UPLOAD_PRESET") ?: ""
+
 android {
-    namespace 'com.n2.gameshop'
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    namespace = 'com.n2.gameshop'
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.n2.gameshop"
@@ -16,6 +15,9 @@ android {
         targetSdk 36
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "CLOUDINARY_CLOUD_NAME", "\"${cloudinaryCloudName}\""
+        buildConfigField "String", "CLOUDINARY_UPLOAD_PRESET", "\"${cloudinaryUploadPreset}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,6 +31,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 }
 

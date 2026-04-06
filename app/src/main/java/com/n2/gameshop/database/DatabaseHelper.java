@@ -8,6 +8,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public static final String DATABASE_NAME = "game_shop.db";
 	public static final int DATABASE_VERSION = 4;
 
+	private static final String IMG_GTA_V = "https://picsum.photos/seed/gta-v/800/500";
+	private static final String IMG_DMC_5 = "https://picsum.photos/seed/dmc5/800/500";
+	private static final String IMG_ELDEN_RING = "https://picsum.photos/seed/elden-ring/800/500";
+	private static final String IMG_FF_XVI = "https://picsum.photos/seed/final-fantasy-xvi/800/500";
+	private static final String IMG_FIFA_24 = "https://picsum.photos/seed/fifa-24/800/500";
+	private static final String IMG_NBA_2K24 = "https://picsum.photos/seed/nba-2k24/800/500";
+	private static final String IMG_CIV_6 = "https://picsum.photos/seed/civilization-vi/800/500";
+	private static final String IMG_AOE_4 = "https://picsum.photos/seed/aoe-iv/800/500";
+	private static final String IMG_ZELDA = "https://picsum.photos/seed/zelda/800/500";
+	private static final String IMG_COD_MOBILE = "https://picsum.photos/seed/cod-mobile/800/500";
+
 	// ===== USERS =====
 	public static final String TABLE_USERS = "users";
 	public static final String COLUMN_USER_ID = "id";
@@ -163,6 +174,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		super.onOpen(db);
 		db.execSQL("PRAGMA foreign_keys=ON");
 		seedDefaultAdmin(db);
+		seedSampleProductImages(db);
 	}
 
 	private void seedDefaultAdmin(SQLiteDatabase db) {
@@ -207,15 +219,37 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				+ COLUMN_PRODUCT_PLATFORM + ", "
 				+ COLUMN_PRODUCT_IS_ACTIVE
 				+ ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-		db.execSQL(sql, new Object[]{1, "GTA V", "Grand Theft Auto V - Open world action game", 299000, "", 100, "PC", 1});
-		db.execSQL(sql, new Object[]{1, "Devil May Cry 5", "Hack and slash action game", 450000, "", 50, "PC", 1});
-		db.execSQL(sql, new Object[]{2, "Elden Ring", "Open world action RPG by FromSoftware", 890000, "", 80, "PC", 1});
-		db.execSQL(sql, new Object[]{2, "Final Fantasy XVI", "Action RPG by Square Enix", 1200000, "", 40, "Console", 1});
-		db.execSQL(sql, new Object[]{3, "FIFA 24", "Football simulation game", 650000, "", 200, "Console", 1});
-		db.execSQL(sql, new Object[]{3, "NBA 2K24", "Basketball simulation game", 550000, "", 120, "PC", 1});
-		db.execSQL(sql, new Object[]{4, "Civilization VI", "Turn-based strategy game", 350000, "", 90, "PC", 1});
-		db.execSQL(sql, new Object[]{4, "Age of Empires IV", "Real-time strategy game", 500000, "", 70, "PC", 1});
-		db.execSQL(sql, new Object[]{5, "The Legend of Zelda", "Action-adventure game by Nintendo", 1100000, "", 60, "Console", 1});
-		db.execSQL(sql, new Object[]{1, "Call of Duty Mobile", "FPS game for mobile", 0, "", 999, "Mobile", 1});
+		db.execSQL(sql, new Object[]{1, "GTA V", "Grand Theft Auto V - Open world action game", 299000, IMG_GTA_V, 100, "PC", 1});
+		db.execSQL(sql, new Object[]{1, "Devil May Cry 5", "Hack and slash action game", 450000, IMG_DMC_5, 50, "PC", 1});
+		db.execSQL(sql, new Object[]{2, "Elden Ring", "Open world action RPG by FromSoftware", 890000, IMG_ELDEN_RING, 80, "PC", 1});
+		db.execSQL(sql, new Object[]{2, "Final Fantasy XVI", "Action RPG by Square Enix", 1200000, IMG_FF_XVI, 40, "Console", 1});
+		db.execSQL(sql, new Object[]{3, "FIFA 24", "Football simulation game", 650000, IMG_FIFA_24, 200, "Console", 1});
+		db.execSQL(sql, new Object[]{3, "NBA 2K24", "Basketball simulation game", 550000, IMG_NBA_2K24, 120, "PC", 1});
+		db.execSQL(sql, new Object[]{4, "Civilization VI", "Turn-based strategy game", 350000, IMG_CIV_6, 90, "PC", 1});
+		db.execSQL(sql, new Object[]{4, "Age of Empires IV", "Real-time strategy game", 500000, IMG_AOE_4, 70, "PC", 1});
+		db.execSQL(sql, new Object[]{5, "The Legend of Zelda", "Action-adventure game by Nintendo", 1100000, IMG_ZELDA, 60, "Console", 1});
+		db.execSQL(sql, new Object[]{1, "Call of Duty Mobile", "FPS game for mobile", 0, IMG_COD_MOBILE, 999, "Mobile", 1});
+	}
+
+	private void seedSampleProductImages(SQLiteDatabase db) {
+		// Backfill old rows that were seeded with empty image_url.
+		updateImageIfMissing(db, "GTA V", IMG_GTA_V);
+		updateImageIfMissing(db, "Devil May Cry 5", IMG_DMC_5);
+		updateImageIfMissing(db, "Elden Ring", IMG_ELDEN_RING);
+		updateImageIfMissing(db, "Final Fantasy XVI", IMG_FF_XVI);
+		updateImageIfMissing(db, "FIFA 24", IMG_FIFA_24);
+		updateImageIfMissing(db, "NBA 2K24", IMG_NBA_2K24);
+		updateImageIfMissing(db, "Civilization VI", IMG_CIV_6);
+		updateImageIfMissing(db, "Age of Empires IV", IMG_AOE_4);
+		updateImageIfMissing(db, "The Legend of Zelda", IMG_ZELDA);
+		updateImageIfMissing(db, "Call of Duty Mobile", IMG_COD_MOBILE);
+	}
+
+	private void updateImageIfMissing(SQLiteDatabase db, String productName, String imageUrl) {
+		db.execSQL("UPDATE " + TABLE_PRODUCTS
+				+ " SET " + COLUMN_PRODUCT_IMAGE + " = ?"
+				+ " WHERE " + COLUMN_PRODUCT_NAME + " = ?"
+				+ " AND (" + COLUMN_PRODUCT_IMAGE + " IS NULL OR TRIM(" + COLUMN_PRODUCT_IMAGE + ") = '')",
+				new Object[]{imageUrl, productName});
 	}
 }

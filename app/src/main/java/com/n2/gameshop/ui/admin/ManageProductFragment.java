@@ -2,29 +2,37 @@ package com.n2.gameshop.ui.admin;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.n2.gameshop.BuildConfig;
 import com.n2.gameshop.R;
 import com.n2.gameshop.adapter.AdminProductAdapter;
 import com.n2.gameshop.model.Category;
 import com.n2.gameshop.model.Product;
+import com.n2.gameshop.network.CloudinaryUploader;
 import com.n2.gameshop.presenter.AdminPresenter;
 import com.n2.gameshop.utils.Constants;
 
@@ -42,6 +50,26 @@ public class ManageProductFragment extends Fragment implements AdminPresenter.Pr
     private AdminProductAdapter productAdapter;
     private List<Category> allCategories = new ArrayList<Category>();
     private int selectedFilterCategoryId = -1; // -1 = All
+    private ActivityResultLauncher<String> imagePickerLauncher;
+    private TextInputEditText activeImageInput;
+    private TextView activeUploadStatus;
+    private ImageView activeImagePreview;
+    private MaterialButton activePickButton;
+    private volatile boolean isImageUploading = false;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(),
+                new androidx.activity.result.ActivityResultCallback<Uri>() {
+                    @Override
+                    public void onActivityResult(Uri uri) {
+                        if (uri != null) {
+                            uploadSelectedImage(uri);
+                        }
+                    }
+                });
+    }
 
     @Nullable
     @Override
@@ -132,10 +160,26 @@ public class ManageProductFragment extends Fragment implements AdminPresenter.Pr
         final TextInputEditText edtDesc = dialogView.findViewById(R.id.edtDialogProductDesc);
         final TextInputEditText edtPrice = dialogView.findViewById(R.id.edtDialogProductPrice);
         final TextInputEditText edtImage = dialogView.findViewById(R.id.edtDialogProductImage);
+        final MaterialButton btnPickImage = dialogView.findViewById(R.id.btnDialogPickImage);
+        final ImageView imgPreview = dialogView.findViewById(R.id.imgDialogProductPreview);
+        final TextView tvUploadStatus = dialogView.findViewById(R.id.tvDialogUploadStatus);
         final TextInputEditText edtStock = dialogView.findViewById(R.id.edtDialogProductStock);
         final Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerDialogCategory);
         final Spinner spinnerPlatform = dialogView.findViewById(R.id.spinnerDialogPlatform);
         final CheckBox cbActive = dialogView.findViewById(R.id.cbDialogProductActive);
+
+        activeImageInput = edtImage;
+        activeImagePreview = imgPreview;
+        activeUploadStatus = tvUploadStatus;
+        activePickButton = btnPickImage;
+        isImageUploading = false;
+
+        btnPickImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imagePickerLauncher.launch("image/*");
+            }
+        });
 
         // Setup category spinner in dialog
         List<String> catNames = new ArrayList<String>();
@@ -162,6 +206,16 @@ public class ManageProductFragment extends Fragment implements AdminPresenter.Pr
             edtStock.setText(String.valueOf(existingProduct.getStock()));
             cbActive.setChecked(existingProduct.isActive());
 
+            if (!TextUtils.isEmpty(existingProduct.getImageUrl())) {
+                Glide.with(this)
+                        .load(existingProduct.getImageUrl())
+                        .placeholder(R.drawable.ic_placeholder_game)
+                        .error(R.drawable.ic_placeholder_game)
+                        .centerCrop()
+                        .into(imgPreview);
+                tvUploadStatus.setText("Đang dùng ảnh hiện tại");
+            }
+
             // Select existing category
             for (int i = 0; i < allCategories.size(); i++) {
                 if (allCategories.get(i).getId() == existingProduct.getCategoryId()) {
@@ -179,12 +233,24 @@ public class ManageProductFragment extends Fragment implements AdminPresenter.Pr
             }
         }
 
-        new AlertDialog.Builder(requireContext())
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
                 .setTitle(isNew ? "Thêm Sản phẩm" : "Sửa Sản phẩm")
                 .setView(dialogView)
-                .setPositiveButton("Lưu", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Lưu", null)
+                .setNegativeButton("Hủy", null)
+                .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(View v) {
+                        if (isImageUploading) {
+                            Toast.makeText(requireContext(), "Đang upload ảnh, vui lòng chờ", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         Product product = isNew ? new Product() : existingProduct;
                         product.setName(getText(edtName));
                         product.setDescription(getText(edtDesc));
@@ -218,10 +284,98 @@ public class ManageProductFragment extends Fragment implements AdminPresenter.Pr
                         }
 
                         presenter.saveProduct(ManageProductFragment.this, product, isNew);
+                        dialog.dismiss();
                     }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
+                });
+            }
+        });
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                clearActiveUploadViews();
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void uploadSelectedImage(final Uri uri) {
+        if (activeImageInput == null || activeUploadStatus == null || activeImagePreview == null) {
+            return;
+        }
+        if (TextUtils.isEmpty(BuildConfig.CLOUDINARY_CLOUD_NAME)
+                || TextUtils.isEmpty(BuildConfig.CLOUDINARY_UPLOAD_PRESET)) {
+            Toast.makeText(requireContext(),
+                    "Thiếu cấu hình Cloudinary trong gradle.properties",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Glide.with(this)
+                .load(uri)
+                .placeholder(R.drawable.ic_placeholder_game)
+                .error(R.drawable.ic_placeholder_game)
+                .centerCrop()
+                .into(activeImagePreview);
+
+        isImageUploading = true;
+        if (activePickButton != null) {
+            activePickButton.setEnabled(false);
+        }
+        activeUploadStatus.setText("Đang upload ảnh lên Cloudinary...");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final String uploadedUrl = CloudinaryUploader.uploadImage(
+                            requireContext(),
+                            uri,
+                            BuildConfig.CLOUDINARY_CLOUD_NAME,
+                            BuildConfig.CLOUDINARY_UPLOAD_PRESET
+                    );
+
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            isImageUploading = false;
+                            if (activePickButton != null) {
+                                activePickButton.setEnabled(true);
+                            }
+                            if (activeImageInput != null) {
+                                activeImageInput.setText(uploadedUrl);
+                            }
+                            if (activeUploadStatus != null) {
+                                activeUploadStatus.setText("Upload thành công");
+                            }
+                        }
+                    });
+                } catch (final Exception e) {
+                    requireActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            isImageUploading = false;
+                            if (activePickButton != null) {
+                                activePickButton.setEnabled(true);
+                            }
+                            if (activeUploadStatus != null) {
+                                activeUploadStatus.setText("Upload thất bại");
+                            }
+                            Toast.makeText(requireContext(), "Lỗi upload: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void clearActiveUploadViews() {
+        activeImageInput = null;
+        activeUploadStatus = null;
+        activeImagePreview = null;
+        activePickButton = null;
+        isImageUploading = false;
     }
 
     private void showDeleteConfirmation(final Product product) {

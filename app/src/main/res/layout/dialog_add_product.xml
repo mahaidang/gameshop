@@ -62,6 +62,33 @@
                 android:inputType="textUri" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDialogPickImage"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Chọn ảnh từ máy và upload Cloudinary" />
+
+        <ImageView
+            android:id="@+id/imgDialogProductPreview"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:layout_marginBottom="4dp"
+            android:background="#EEEEEE"
+            android:contentDescription="Preview image"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_placeholder_game" />
+
+        <TextView
+            android:id="@+id/tvDialogUploadStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="Chưa upload ảnh"
+            android:textColor="#757575"
+            android:textSize="12sp" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

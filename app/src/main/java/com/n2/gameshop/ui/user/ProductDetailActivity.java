@@ -10,6 +10,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -41,7 +42,7 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
     private TextView tvDetailStock, tvDetailDescription;
     private RatingBar ratingBarAverage;
     private TextView tvAverageRating, tvReviewsHeader, tvNoReviews;
-    private MaterialButton btnAddToCart, btnWriteReview;
+    private MaterialButton btnBack, btnAddToCart, btnWriteReview;
     private RecyclerView rvReviews;
 
     private ReviewPresenter reviewPresenter;
@@ -56,6 +57,13 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_product_detail);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateBack();
+            }
+        });
 
         productId = getIntent().getIntExtra("product_id", -1);
         if (productId <= 0) {
@@ -85,6 +93,7 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
     }
 
     private void initViews() {
+        btnBack = findViewById(R.id.btnBack);
         imgProductDetail = findViewById(R.id.imgProductDetail);
         tvDetailName = findViewById(R.id.tvDetailName);
         tvDetailPrice = findViewById(R.id.tvDetailPrice);
@@ -108,6 +117,13 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
     }
 
     private void setupActions() {
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                navigateBack();
+            }
+        });
+
         btnAddToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -205,6 +221,15 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
         // Show "Viết đánh giá" — presenter will hide it if already reviewed
         btnWriteReview.setVisibility(View.VISIBLE);
         reviewPresenter.checkCanReview(user.getId(), productId);
+    }
+
+    private void navigateBack() {
+        if (isTaskRoot()) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+        }
+        finish();
     }
 
     // ===== ReviewPresenter.View callbacks =====

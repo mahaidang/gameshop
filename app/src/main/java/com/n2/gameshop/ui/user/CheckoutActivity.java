@@ -35,6 +35,7 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
     private TextView tvCheckoutTotal;
     private RadioGroup rgPaymentMethod;
     private TextInputEditText edtCheckoutNote;
+    private MaterialButton btnBackToCart;
     private MaterialButton btnPlaceOrder;
 
     private OrderPresenter presenter;
@@ -65,6 +66,7 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
         tvCheckoutTotal = findViewById(R.id.tvCheckoutTotal);
         rgPaymentMethod = findViewById(R.id.rgPaymentMethod);
         edtCheckoutNote = findViewById(R.id.edtCheckoutNote);
+        btnBackToCart = findViewById(R.id.btnBackToCart);
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
     }
 
@@ -76,6 +78,13 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
     }
 
     private void setupActions() {
+        btnBackToCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
         btnPlaceOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -58,45 +58,44 @@
 
             <ImageButton
                 android:id="@+id/btnCartMinus"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:background="@drawable/bg_quantity_action"
-                android:contentDescription="Decrease"
+                android:contentDescription="Giảm số lượng"
                 android:padding="8dp"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_quantity_minus" />
+                app:srcCompat="@drawable/ic_quantity_minus" />
 
             <TextView
                 android:id="@+id/tvCartQuantity"
                 android:layout_width="40dp"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
                 android:layout_marginStart="6dp"
                 android:layout_marginEnd="6dp"
                 android:gravity="center"
                 android:text="1"
-                android:textColor="#1F1F1F"
-                android:textSize="17sp"
+                android:textColor="#212121"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/btnCartPlus"
-                android:layout_width="34dp"
-                android:layout_height="34dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:background="@drawable/bg_quantity_action"
-                android:contentDescription="Increase"
+                android:contentDescription="Tăng số lượng"
                 android:padding="8dp"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_quantity_plus" />
+                app:srcCompat="@drawable/ic_quantity_plus" />
 
             <ImageButton
                 android:id="@+id/btnCartRemove"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="10dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Remove"
+                android:contentDescription="Xóa sản phẩm"
                 android:src="@android:drawable/ic_menu_delete" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>
-

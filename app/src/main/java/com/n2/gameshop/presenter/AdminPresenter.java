@@ -359,6 +359,11 @@ public class AdminPresenter {
 
                 double totalRevenue = 0;
                 for (Order o : orders) {
+                    // Realized revenue excludes newly created (pending) orders.
+                    String status = o.getStatus();
+                    if (status != null && Constants.STATUS_PENDING.equalsIgnoreCase(status)) {
+                        continue;
+                    }
                     totalRevenue += o.getTotalAmount();
                 }
 

@@ -8,6 +8,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -27,9 +28,29 @@ public class LoginActivity extends AppCompatActivity implements AuthPresenter.Vi
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 
+		setupToolbar();
+
 		authPresenter = new AuthPresenter(this, this);
 		initViews();
 		setupActions();
+	}
+
+	private void setupToolbar() {
+		Toolbar toolbar = findViewById(R.id.toolbarLogin);
+		setSupportActionBar(toolbar);
+		if (getSupportActionBar() != null) {
+			getSupportActionBar().setTitle("Đăng nhập");
+			getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		}
+		toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+				startActivity(intent);
+				finish();
+			}
+		});
 	}
 
 	private void initViews() {

@@ -5,6 +5,15 @@
 	android:layout_height="match_parent"
 	android:padding="24dp">
 
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/toolbarLogin"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent" />
+
 	<TextView
 		android:id="@+id/tvLoginTitle"
 		android:layout_width="0dp"
@@ -15,7 +24,7 @@
 		android:textStyle="bold"
 		app:layout_constraintEnd_toEndOf="parent"
 		app:layout_constraintStart_toStartOf="parent"
-		app:layout_constraintTop_toTopOf="parent" />
+		app:layout_constraintTop_toBottomOf="@id/toolbarLogin" />
 
 	<com.google.android.material.textfield.TextInputLayout
 		android:id="@+id/layoutUsernameOrEmail"

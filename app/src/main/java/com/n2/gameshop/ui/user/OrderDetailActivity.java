@@ -1,6 +1,7 @@
 package com.n2.gameshop.ui.user;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.n2.gameshop.R;
 import com.n2.gameshop.adapter.OrderDetailAdapter;
 import com.n2.gameshop.model.CartItem;
@@ -24,6 +26,7 @@ import java.util.Locale;
 public class OrderDetailActivity extends AppCompatActivity implements OrderPresenter.View {
 
     private TextView tvODOrderId, tvODStatus, tvODPayment, tvODDate, tvODTotal, tvODNote;
+    private MaterialButton btnODBack;
     private RecyclerView rvOrderDetailItems;
     private OrderDetailAdapter detailAdapter;
     private OrderPresenter presenter;
@@ -54,11 +57,19 @@ public class OrderDetailActivity extends AppCompatActivity implements OrderPrese
         tvODDate = findViewById(R.id.tvODDate);
         tvODTotal = findViewById(R.id.tvODTotal);
         tvODNote = findViewById(R.id.tvODNote);
+        btnODBack = findViewById(R.id.btnODBack);
         rvOrderDetailItems = findViewById(R.id.rvOrderDetailItems);
 
         detailAdapter = new OrderDetailAdapter(this, new ArrayList<OrderDetail>());
         rvOrderDetailItems.setLayoutManager(new LinearLayoutManager(this));
         rvOrderDetailItems.setAdapter(detailAdapter);
+
+        btnODBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     private void displayOrderInfo() {
@@ -77,7 +88,7 @@ public class OrderDetailActivity extends AppCompatActivity implements OrderPrese
 
         if (note != null && !note.isEmpty()) {
             tvODNote.setText("Ghi chú: " + note);
-            tvODNote.setVisibility(android.view.View.VISIBLE);
+            tvODNote.setVisibility(View.VISIBLE);
         }
     }
 
@@ -102,4 +113,3 @@ public class OrderDetailActivity extends AppCompatActivity implements OrderPrese
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
-

@@ -24,6 +24,7 @@ import com.n2.gameshop.model.OrderDetail;
 import com.n2.gameshop.presenter.OrderPresenter;
 
 import java.text.NumberFormat;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -38,7 +39,6 @@ public class CartFragment extends Fragment implements OrderPresenter.View {
     private OrderPresenter presenter;
     private CartAdapter cartAdapter;
     private List<CartItem> currentCartItems = new ArrayList<CartItem>();
-    private double currentTotal = 0;
     private final NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
 
     @Nullable
@@ -88,6 +88,11 @@ public class CartFragment extends Fragment implements OrderPresenter.View {
                 presenter.removeFromCart(item.getProduct().getId());
                 presenter.loadCart();
             }
+
+            @Override
+            public void onSelectionChanged(CartItem item, boolean isSelected) {
+                calculateSelectedTotal();
+            }
         });
     }
 
@@ -95,13 +100,39 @@ public class CartFragment extends Fragment implements OrderPresenter.View {
         btnCheckout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (currentCartItems.isEmpty()) {
-                    Toast.makeText(requireContext(), "Giỏ hàng trống", Toast.LENGTH_SHORT).show();
+                List<CartItem> selectedItems = getSelectedItems();
+                if (selectedItems.isEmpty()) {
+                    Toast.makeText(requireContext(), "Vui lòng chọn sản phẩm để thanh toán", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                startActivity(new Intent(requireContext(), CheckoutActivity.class));
+                
+                Intent intent = new Intent(requireContext(), CheckoutActivity.class);
+                // We'll pass the selected items to checkout
+                intent.putExtra("selected_items", (Serializable) selectedItems);
+                startActivity(intent);
             }
         });
+    }
+
+    private List<CartItem> getSelectedItems() {
+        List<CartItem> selected = new ArrayList<>();
+        for (CartItem item : currentCartItems) {
+            if (item.isSelected()) {
+                selected.add(item);
+            }
+        }
+        return selected;
+    }
+
+    private void calculateSelectedTotal() {
+        double total = 0;
+        for (CartItem item : currentCartItems) {
+            if (item.isSelected()) {
+                total += item.getSubtotal();
+            }
+        }
+        tvCartTotal.setText(nf.format(total) + " ₫");
+        btnCheckout.setEnabled(total > 0);
     }
 
     private void updateEmptyState() {
@@ -121,9 +152,8 @@ public class CartFragment extends Fragment implements OrderPresenter.View {
     @Override
     public void onCartLoaded(List<CartItem> cartItems, double total) {
         this.currentCartItems = cartItems;
-        this.currentTotal = total;
         cartAdapter.updateData(cartItems);
-        tvCartTotal.setText(nf.format(total) + " ₫");
+        calculateSelectedTotal();
         updateEmptyState();
     }
 
@@ -143,4 +173,3 @@ public class CartFragment extends Fragment implements OrderPresenter.View {
         }
     }
 }
-

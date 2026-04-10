@@ -127,10 +127,10 @@ public class OrderPresenter {
 
                         // Decrease stock
                         orderDAO.decreaseStock(ci.getProduct().getId(), ci.getQuantity());
+                        
+                        // Remove ONLY the purchased item from the cart manager
+                        cartManager.removeFromCart(ci.getProduct().getId());
                     }
-
-                    // Clear cart
-                    cartManager.clearCart();
 
                     mainHandler.post(new Runnable() {
                         @Override
@@ -206,4 +206,3 @@ public class OrderPresenter {
         cartManager.removeFromCart(productId);
     }
 }
-

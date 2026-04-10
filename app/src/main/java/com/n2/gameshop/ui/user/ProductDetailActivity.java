@@ -42,7 +42,7 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
     private TextView tvDetailStock, tvDetailDescription;
     private RatingBar ratingBarAverage;
     private TextView tvAverageRating, tvReviewsHeader, tvNoReviews;
-    private MaterialButton btnBack, btnAddToCart, btnWriteReview;
+    private MaterialButton btnBack, btnAddToCart, btnBuyNow, btnWriteReview;
     private RecyclerView rvReviews;
 
     private ReviewPresenter reviewPresenter;
@@ -105,6 +105,7 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
         tvReviewsHeader = findViewById(R.id.tvReviewsHeader);
         tvNoReviews = findViewById(R.id.tvNoReviews);
         btnAddToCart = findViewById(R.id.btnAddToCart);
+        btnBuyNow = findViewById(R.id.btnBuyNow);
         btnWriteReview = findViewById(R.id.btnWriteReview);
         rvReviews = findViewById(R.id.rvReviews);
     }
@@ -134,6 +135,19 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
                 }
                 cartManager.addToCart(currentProduct.getId(), 1);
                 Toast.makeText(ProductDetailActivity.this, "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnBuyNow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (currentProduct == null) return;
+                if (currentProduct.getStock() <= 0) {
+                    Toast.makeText(ProductDetailActivity.this, "Sản phẩm đã hết hàng", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                cartManager.addToCart(currentProduct.getId(), 1);
+                startActivity(new Intent(ProductDetailActivity.this, CheckoutActivity.class));
             }
         });
 
@@ -186,6 +200,8 @@ public class ProductDetailActivity extends AppCompatActivity implements ReviewPr
         if (product.getStock() <= 0) {
             btnAddToCart.setEnabled(false);
             btnAddToCart.setText("Hết hàng");
+            btnBuyNow.setEnabled(false);
+            btnBuyNow.setText("Hết hàng");
         }
 
         String imageUrl = product.getImageUrl();

@@ -58,7 +58,14 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
         setupSummaryList();
         setupActions();
 
-        presenter.loadCart();
+        // Check if we received selected items from Intent
+        List<CartItem> selectedItems = (List<CartItem>) getIntent().getSerializableExtra("selected_items");
+        if (selectedItems != null) {
+            displayCheckoutItems(selectedItems);
+        } else {
+            // Fallback: load full cart if no specific items passed
+            presenter.loadCart();
+        }
     }
 
     private void initViews() {
@@ -109,24 +116,31 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
         });
     }
 
-    // ===== OrderPresenter.View callbacks =====
-
-    @Override
-    public void onCartLoaded(List<CartItem> items, double total) {
+    private void displayCheckoutItems(List<CartItem> items) {
         this.cartItems = items;
-        this.totalAmount = total;
-        tvCheckoutTotal.setText(nf.format(total) + " ₫");
-
-        // Convert CartItems to OrderDetail for summary adapter
-        List<OrderDetail> summaryList = new ArrayList<OrderDetail>();
+        double total = 0;
+        List<OrderDetail> summaryList = new ArrayList<>();
+        
         for (CartItem ci : items) {
+            total += ci.getSubtotal();
+            
             OrderDetail od = new OrderDetail();
             od.setProductName(ci.getProduct().getName());
             od.setQuantity(ci.getQuantity());
             od.setUnitPrice(ci.getProduct().getPrice());
             summaryList.add(od);
         }
+        
+        this.totalAmount = total;
+        tvCheckoutTotal.setText(nf.format(total) + " ₫");
         summaryAdapter.updateData(summaryList);
+    }
+
+    // ===== OrderPresenter.View callbacks =====
+
+    @Override
+    public void onCartLoaded(List<CartItem> items, double total) {
+        displayCheckoutItems(items);
     }
 
     @Override
@@ -157,4 +171,3 @@ public class CheckoutActivity extends AppCompatActivity implements OrderPresente
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
-
